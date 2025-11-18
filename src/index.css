@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base Styles: Stone background, Ink text */
+body {
+    background-color: #F2F0EA; /* stone */
+    color: #050505; /* ink */
+    font-family: 'Space Mono', monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+    cursor: none; /* Hide default cursor */
+}
+
+/* Custom Cursor Style (from example) */
+#custom-cursor {
+    pointer-events: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #050505; /* ink */
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s, border-color 0.3s, background-color 0.3s, opacity 0.3s;
+    z-index: 9999;
+    mix-blend-mode: difference; /* Ensures visibility */
+}
+
+.dark #custom-cursor {
+    border: 1px solid #F2F0EA; /* stone */
+}
+
+.cursor-expanded {
+    width: 48px !important;
+    height: 48px !important;
+    border-color: #FF3333 !important; /* orange */
+}
+
+/* Chart paths */
+#chart-path-ha { stroke: #FF3333; } /* Orange */
+#chart-path-gpt { stroke: rgba(5, 5, 5, 0.8); } /* ink-light */
+#chart-path-mistral { stroke: rgba(5, 5, 5, 0.5); } 
+#chart-path-human { stroke: rgba(5, 5, 5, 0.3); } /* ink-faint */
+
+.dark #chart-path-gpt { stroke: rgba(242, 240, 234, 0.8); } /* stone-light */
+.dark #chart-path-mistral { stroke: rgba(242, 240, 234, 0.5); } 
+.dark #chart-path-human { stroke: rgba(242, 240, 234, 0.3); } /* stone-faint */
+
+
+/* Added for new hero "AI Buddy" animation */
+@keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+@keyframes spin-slow-reverse {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+}
+.animate-spin-slow {
+    animation: spin-slow 12s linear infinite;
+  }
+.animate-spin-slow-reverse {
+    animation: spin-slow-reverse 10s linear infinite;
+  }
+
+/* Hide scrollbar */
+::-webkit-scrollbar {
+    display: none;
+}
+body {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
