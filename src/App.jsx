@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState, useLayoutEffect } from 'react';
+import { useEffect, useRef, useState, useLayoutEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import gsap from 'gsap';
 import Header from './components/Header';
-import Home from './pages/Home';
-import Platform from './pages/Platform';
 import logoImage from './assets/logo.svg';
+
+// Lazy load pages for better performance
+const Home = lazy(() => import('./pages/Home'));
+const Platform = lazy(() => import('./pages/Platform'));
 
 // Scroll To Top Component
 const ScrollToTop = () => {
@@ -69,26 +71,40 @@ function App() {
     return () => ctx.revert();
   }, []);
 
-  // Custom Cursor Logic (Optimized)
+  // Custom Cursor Logic (Heavily Optimized)
   useEffect(() => {
+    // Disable custom cursor on touch devices for better performance
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+      return;
+    }
+
     const cursor = cursorRef.current;
     if (!cursor) return;
     
     let mouseX = 0, mouseY = 0, targetX = 0, targetY = 0;
-    const speed = 0.2;
+    const speed = 0.15; // Slightly slower for smoother animation
     let rafId = null;
     let lastFrameTime = 0;
-    const targetFPS = 60; // Keep at 60fps for smooth cursor
+    const targetFPS = 30; // Reduced from 60fps - still smooth but less CPU intensive
     const frameInterval = 1000 / targetFPS;
+    let isAnimating = false;
     
+    // Throttle mouse move events
+    let mouseMoveTimeout = null;
     const handleMouseMove = (e) => {
       targetX = e.clientX;
       targetY = e.clientY;
+      
+      // Only start animation loop if not already running
+      if (!isAnimating) {
+        isAnimating = true;
+        animateCursor();
+      }
     };
     
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     
-    const animateCursor = (currentTime) => {
+    const animateCursor = (currentTime = performance.now()) => {
       // Throttle to target FPS
       if (currentTime - lastFrameTime < frameInterval) {
         rafId = requestAnimationFrame(animateCursor);
@@ -101,32 +117,35 @@ function App() {
       const dy = targetY - mouseY;
       const distance = Math.sqrt(dx * dx + dy * dy);
       
-      if (distance > 0.5) { // Only update if moved more than 0.5px
+      if (distance > 1) { // Increased threshold to 1px for less frequent updates
         mouseX += dx * speed;
         mouseY += dy * speed;
         cursor.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+        rafId = requestAnimationFrame(animateCursor);
+      } else {
+        // Stop animation when cursor is close enough
+        isAnimating = false;
       }
-      
-      rafId = requestAnimationFrame(animateCursor);
     };
-    rafId = requestAnimationFrame(animateCursor);
 
-    const handleMouseEnter = () => cursor.classList.add('cursor-expanded');
-    const handleMouseLeave = () => cursor.classList.remove('cursor-expanded');
-    
-    // Use passive event listener and throttle hover checks
-    let hoverCheckTimeout = null;
+    // Debounced hover state management
+    let hoverState = false;
+    let hoverCheckRaf = null;
     const handleHover = (e) => {
-      if (hoverCheckTimeout) return;
+      if (hoverCheckRaf) return;
       
-      hoverCheckTimeout = setTimeout(() => {
-        if (e.target.closest('a, button, .hover-target, input, textarea')) {
-          handleMouseEnter();
-        } else {
-          handleMouseLeave();
+      hoverCheckRaf = requestAnimationFrame(() => {
+        const shouldExpand = !!e.target.closest('a, button, .hover-target, input, textarea');
+        if (shouldExpand !== hoverState) {
+          hoverState = shouldExpand;
+          if (shouldExpand) {
+            cursor.classList.add('cursor-expanded');
+          } else {
+            cursor.classList.remove('cursor-expanded');
+          }
         }
-        hoverCheckTimeout = null;
-      }, 16); // ~60fps check rate
+        hoverCheckRaf = null;
+      });
     };
     document.addEventListener('mouseover', handleHover, { passive: true });
     
@@ -134,7 +153,8 @@ function App() {
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseover', handleHover);
       if (rafId) cancelAnimationFrame(rafId);
-      if (hoverCheckTimeout) clearTimeout(hoverCheckTimeout);
+      if (hoverCheckRaf) cancelAnimationFrame(hoverCheckRaf);
+      if (mouseMoveTimeout) clearTimeout(mouseMoveTimeout);
     };
   }, []);
 
@@ -152,16 +172,22 @@ function App() {
                 ref={loaderLogoRef} 
                 src={logoImage} 
                 alt="HyperAnalyst Logo" 
-                className="w-32 h-32 md:w-48 md:h-48 object-contain opacity-0"
+                className="w-32 h-32 md:w-48 md:h-48 object-contain opacity-0 invert dark:invert-0"
               />
           </div>
 
           <Header isDark={isDark} toggleTheme={toggleTheme} />
 
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/platform" element={<Platform />} />
-          </Routes>
+          <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="w-16 h-16 border-4 border-orange border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          }>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/platform" element={<Platform />} />
+            </Routes>
+          </Suspense>
 
           {/* ========== FOOTER ========== */}
           <footer className="py-16 px-4 bg-stone dark:bg-ink text-ink/70 dark:text-stone/70 text-sm border-t border-ink/40 dark:border-stone/40">
