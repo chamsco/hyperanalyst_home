@@ -68,3 +68,4 @@ CryptoPrices.displayName = 'CryptoPrices';
 
 export default CryptoPrices;
 
+

@@ -9,14 +9,13 @@ cmds = [
 [phases.build]
 cmds = [
   "bun run build",
-  "chmod +x start.sh"
+  "chmod +x start.sh",
+  "ls -la dist || echo 'Build output check'"
 ]
 
 [start]
 cmd = "./start.sh"
 
-[staticAssets]
-"dist" = "/"
 
 [variables]
 PORT = "3000"
