@@ -4,7 +4,7 @@ import gsap from 'gsap';
 import Header from './components/Header';
 import Home from './pages/Home';
 import Platform from './pages/Platform';
-import logoImage from './assets/logo.png';
+import logoImage from './assets/logo.svg';
 
 // Scroll To Top Component
 const ScrollToTop = () => {

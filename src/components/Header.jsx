@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, memo } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
+import logoImage from '../assets/logo.svg';
 
 const Header = memo(({ isDark, toggleTheme }) => {
   const menuOverlayRef = useRef(null);
@@ -35,8 +36,12 @@ const Header = memo(({ isDark, toggleTheme }) => {
     <>
       <nav className="fixed top-0 left-0 w-full p-4 md:p-6 z-50 bg-stone/80 dark:bg-ink/80 backdrop-blur-sm border-b border-ink/40 dark:border-stone/40">
           <div className="container mx-auto max-w-7xl flex justify-between items-center">
-              <Link to="/" className="hover-target font-mono text-lg font-bold flex items-center gap-2">
-                  <span>// HyperAnalyst</span>
+              <Link to="/" className="hover-target font-mono text-lg font-bold flex items-center gap-3">
+                  <img 
+                    src={logoImage} 
+                    alt="HyperAnalyst Logo" 
+                    className="h-8 w-8 md:h-10 md:w-10 object-contain"
+                  />
                   <div className="flex items-center gap-1 px-2 py-0.5 bg-orange/10 border border-orange/20 rounded text-[10px] text-orange">
                     <div className="w-1.5 h-1.5 bg-orange rounded-full animate-pulse"></div>
                     LIVE
