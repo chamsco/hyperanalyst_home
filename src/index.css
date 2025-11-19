@@ -26,6 +26,7 @@ body {
     transition: width 0.3s, height 0.3s, border-color 0.3s, background-color 0.3s, opacity 0.3s;
     z-index: 9999;
     mix-blend-mode: difference; /* Ensures visibility */
+    will-change: transform; /* Optimize for animations */
 }
 
 .dark #custom-cursor {

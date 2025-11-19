@@ -4,6 +4,7 @@ import gsap from 'gsap';
 import Header from './components/Header';
 import Home from './pages/Home';
 import Platform from './pages/Platform';
+import logoImage from './assets/logo.png';
 
 // Scroll To Top Component
 const ScrollToTop = () => {
@@ -68,45 +69,72 @@ function App() {
     return () => ctx.revert();
   }, []);
 
-  // Custom Cursor Logic
+  // Custom Cursor Logic (Optimized)
   useEffect(() => {
     const cursor = cursorRef.current;
+    if (!cursor) return;
+    
     let mouseX = 0, mouseY = 0, targetX = 0, targetY = 0;
     const speed = 0.2;
+    let rafId = null;
+    let lastFrameTime = 0;
+    const targetFPS = 60; // Keep at 60fps for smooth cursor
+    const frameInterval = 1000 / targetFPS;
     
     const handleMouseMove = (e) => {
       targetX = e.clientX;
       targetY = e.clientY;
     };
     
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     
-    const animateCursor = () => {
-      mouseX += (targetX - mouseX) * speed;
-      mouseY += (targetY - mouseY) * speed;
-      if (cursor) {
+    const animateCursor = (currentTime) => {
+      // Throttle to target FPS
+      if (currentTime - lastFrameTime < frameInterval) {
+        rafId = requestAnimationFrame(animateCursor);
+        return;
+      }
+      lastFrameTime = currentTime;
+
+      // Only update if there's a meaningful change (reduce unnecessary repaints)
+      const dx = targetX - mouseX;
+      const dy = targetY - mouseY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      if (distance > 0.5) { // Only update if moved more than 0.5px
+        mouseX += dx * speed;
+        mouseY += dy * speed;
         cursor.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
       }
-      requestAnimationFrame(animateCursor);
+      
+      rafId = requestAnimationFrame(animateCursor);
     };
-    const rafId = requestAnimationFrame(animateCursor);
+    rafId = requestAnimationFrame(animateCursor);
 
-    const handleMouseEnter = () => cursor?.classList.add('cursor-expanded');
-    const handleMouseLeave = () => cursor?.classList.remove('cursor-expanded');
+    const handleMouseEnter = () => cursor.classList.add('cursor-expanded');
+    const handleMouseLeave = () => cursor.classList.remove('cursor-expanded');
     
+    // Use passive event listener and throttle hover checks
+    let hoverCheckTimeout = null;
     const handleHover = (e) => {
+      if (hoverCheckTimeout) return;
+      
+      hoverCheckTimeout = setTimeout(() => {
         if (e.target.closest('a, button, .hover-target, input, textarea')) {
-            handleMouseEnter();
+          handleMouseEnter();
         } else {
-            handleMouseLeave();
+          handleMouseLeave();
         }
+        hoverCheckTimeout = null;
+      }, 16); // ~60fps check rate
     };
-    document.addEventListener('mouseover', handleHover);
+    document.addEventListener('mouseover', handleHover, { passive: true });
     
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseover', handleHover);
-      cancelAnimationFrame(rafId);
+      if (rafId) cancelAnimationFrame(rafId);
+      if (hoverCheckTimeout) clearTimeout(hoverCheckTimeout);
     };
   }, []);
 
@@ -119,7 +147,13 @@ function App() {
 
           {/* ========== LOADER ========== */}
           <div id="loader" ref={loaderRef} className="fixed inset-0 bg-stone dark:bg-ink z-[100] flex items-center justify-center">
-              <h1 id="loader-logo" ref={loaderLogoRef} className="font-serif text-6xl md:text-8xl font-bold text-ink dark:text-stone">HA</h1>
+              <img 
+                id="loader-logo" 
+                ref={loaderLogoRef} 
+                src={logoImage} 
+                alt="HyperAnalyst Logo" 
+                className="w-32 h-32 md:w-48 md:h-48 object-contain opacity-0"
+              />
           </div>
 
           <Header isDark={isDark} toggleTheme={toggleTheme} />

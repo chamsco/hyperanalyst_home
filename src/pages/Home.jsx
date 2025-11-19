@@ -1,8 +1,8 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, memo } from 'react';
 import gsap from 'gsap';
 import TradingChart from '../components/TradingChart';
 
-const Home = () => {
+const Home = memo(() => {
   const heroRef = useRef(null);
 
   useLayoutEffect(() => {
@@ -95,7 +95,9 @@ const Home = () => {
         </section>
     </main>
   );
-};
+});
+
+Home.displayName = 'Home';
 
 export default Home;
 

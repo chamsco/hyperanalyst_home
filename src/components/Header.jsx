@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 
-const Header = ({ isDark, toggleTheme }) => {
+const Header = memo(({ isDark, toggleTheme }) => {
   const menuOverlayRef = useRef(null);
   const menuTl = useRef(null);
 
@@ -68,7 +68,9 @@ const Header = ({ isDark, toggleTheme }) => {
       </div>
     </>
   );
-};
+});
+
+Header.displayName = 'Header';
 
 export default Header;
 

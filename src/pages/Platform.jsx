@@ -1,10 +1,10 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, memo } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const Platform = () => {
+const Platform = memo(() => {
   const containerRef = useRef(null);
 
   useLayoutEffect(() => {
@@ -204,7 +204,9 @@ const Platform = () => {
         </section>
     </div>
   );
-};
+});
+
+Platform.displayName = 'Platform';
 
 export default Platform;
 
