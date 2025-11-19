@@ -9,12 +9,11 @@ cmds = [
 [phases.build]
 cmds = [
   "bun run build",
-  "chmod +x start.sh",
   "ls -la dist || echo 'Build output check'"
 ]
 
 [start]
-cmd = "./start.sh"
+cmd = "bunx serve -s dist -l tcp://0.0.0.0:${PORT}"
 
 
 [variables]
