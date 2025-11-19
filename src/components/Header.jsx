@@ -40,7 +40,7 @@ const Header = memo(({ isDark, toggleTheme }) => {
                   <img 
                     src={logoImage} 
                     alt="HyperAnalyst Logo" 
-                    className="h-8 w-8 md:h-10 md:w-10 object-contain"
+                    className="h-8 w-8 md:h-10 md:w-10 object-contain invert dark:invert-0"
                   />
                   <div className="flex items-center gap-1 px-2 py-0.5 bg-orange/10 border border-orange/20 rounded text-[10px] text-orange">
                     <div className="w-1.5 h-1.5 bg-orange rounded-full animate-pulse"></div>

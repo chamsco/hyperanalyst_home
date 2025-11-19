@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState, useLayoutEffect } from 'react';
+import { useEffect, useRef, useState, useLayoutEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import gsap from 'gsap';
 import Header from './components/Header';
-import Home from './pages/Home';
-import Platform from './pages/Platform';
 import logoImage from './assets/logo.svg';
+
+// Lazy load pages for better performance
+const Home = lazy(() => import('./pages/Home'));
+const Platform = lazy(() => import('./pages/Platform'));
 
 // Scroll To Top Component
 const ScrollToTop = () => {
@@ -152,16 +154,22 @@ function App() {
                 ref={loaderLogoRef} 
                 src={logoImage} 
                 alt="HyperAnalyst Logo" 
-                className="w-32 h-32 md:w-48 md:h-48 object-contain opacity-0"
+                className="w-32 h-32 md:w-48 md:h-48 object-contain opacity-0 invert dark:invert-0"
               />
           </div>
 
           <Header isDark={isDark} toggleTheme={toggleTheme} />
 
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/platform" element={<Platform />} />
-          </Routes>
+          <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="w-16 h-16 border-4 border-orange border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          }>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/platform" element={<Platform />} />
+            </Routes>
+          </Suspense>
 
           {/* ========== FOOTER ========== */}
           <footer className="py-16 px-4 bg-stone dark:bg-ink text-ink/70 dark:text-stone/70 text-sm border-t border-ink/40 dark:border-stone/40">
