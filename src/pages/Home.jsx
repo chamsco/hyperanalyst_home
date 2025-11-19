@@ -7,46 +7,68 @@ const Home = memo(() => {
   const heroRef = useRef(null);
 
   useLayoutEffect(() => {
-    const ctx = gsap.context(() => {
-        // Hero Text Animation
-        const headlines = gsap.utils.toArray('.hero-line');
-        
-        gsap.fromTo(headlines, {
-            yPercent: 100,
-            opacity: 0
-        }, {
-            yPercent: 0,
-            opacity: 1,
-            stagger: 0.15,
-            duration: 1,
-            ease: "power3.out",
-            delay: 0.5
-        });
+    let ctx = null;
+    let timeoutId = null;
+    
+    // Use requestIdleCallback for non-critical animations
+    const scheduleAnimation = window.requestIdleCallback || ((cb) => {
+      timeoutId = setTimeout(cb, 1);
+      return timeoutId;
+    });
+    
+    const animationId = scheduleAnimation(() => {
+      ctx = gsap.context(() => {
+          // Hero Text Animation - Reduced duration for faster feel
+          const headlines = gsap.utils.toArray('.hero-line');
+          
+          gsap.fromTo(headlines, {
+              yPercent: 100,
+              opacity: 0
+          }, {
+              yPercent: 0,
+              opacity: 1,
+              stagger: 0.1, // Reduced from 0.15
+              duration: 0.7, // Reduced from 1
+              ease: "power2.out", // Changed from power3 for better performance
+              delay: 0.3 // Reduced from 0.5
+          });
 
-        gsap.fromTo('#hero-sub', {
-            opacity: 0,
-            y: 20
-        }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-            delay: 1.2
-        });
-        
-        gsap.fromTo('#chart-section', {
-            opacity: 0,
-            scale: 0.95
-        }, {
-            opacity: 1,
-            scale: 1,
-            duration: 1,
-            ease: "power3.out",
-            delay: 1.5
-        });
+          gsap.fromTo('#hero-sub', {
+              opacity: 0,
+              y: 20
+          }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.6, // Reduced from 0.8
+              ease: "power2.out",
+              delay: 0.8 // Reduced from 1.2
+          });
+          
+          gsap.fromTo('#chart-section', {
+              opacity: 0,
+              scale: 0.98 // Less dramatic scale
+          }, {
+              opacity: 1,
+              scale: 1,
+              duration: 0.7, // Reduced from 1
+              ease: "power2.out", // Changed from power3
+              delay: 1.0 // Reduced from 1.5
+          });
 
-    }, heroRef);
-    return () => ctx.revert();
+      }, heroRef);
+    });
+    
+    return () => {
+      if (ctx) ctx.revert();
+      if (timeoutId) clearTimeout(timeoutId);
+      if (animationId && typeof animationId === 'number') {
+        if (window.cancelIdleCallback) {
+          window.cancelIdleCallback(animationId);
+        } else {
+          clearTimeout(animationId);
+        }
+      }
+    };
   }, []);
 
   return (

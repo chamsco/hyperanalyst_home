@@ -12,7 +12,7 @@ body {
     cursor: none; /* Hide default cursor */
 }
 
-/* Custom Cursor Style (from example) */
+/* Custom Cursor Style (Optimized) */
 #custom-cursor {
     pointer-events: none;
     position: fixed;
@@ -22,11 +22,13 @@ body {
     height: 32px;
     border-radius: 50%;
     border: 1px solid #050505; /* ink */
-    transform: translate(-50%, -50%);
-    transition: width 0.3s, height 0.3s, border-color 0.3s, background-color 0.3s, opacity 0.3s;
+    transform: translate(-50%, -50%) translateZ(0); /* Force GPU acceleration */
+    transition: width 0.2s ease-out, height 0.2s ease-out, border-color 0.2s ease-out;
     z-index: 9999;
     mix-blend-mode: difference; /* Ensures visibility */
     will-change: transform; /* Optimize for animations */
+    backface-visibility: hidden; /* Prevent flickering */
+    -webkit-font-smoothing: antialiased;
 }
 
 .dark #custom-cursor {

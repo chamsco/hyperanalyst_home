@@ -71,26 +71,40 @@ function App() {
     return () => ctx.revert();
   }, []);
 
-  // Custom Cursor Logic (Optimized)
+  // Custom Cursor Logic (Heavily Optimized)
   useEffect(() => {
+    // Disable custom cursor on touch devices for better performance
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+      return;
+    }
+
     const cursor = cursorRef.current;
     if (!cursor) return;
     
     let mouseX = 0, mouseY = 0, targetX = 0, targetY = 0;
-    const speed = 0.2;
+    const speed = 0.15; // Slightly slower for smoother animation
     let rafId = null;
     let lastFrameTime = 0;
-    const targetFPS = 60; // Keep at 60fps for smooth cursor
+    const targetFPS = 30; // Reduced from 60fps - still smooth but less CPU intensive
     const frameInterval = 1000 / targetFPS;
+    let isAnimating = false;
     
+    // Throttle mouse move events
+    let mouseMoveTimeout = null;
     const handleMouseMove = (e) => {
       targetX = e.clientX;
       targetY = e.clientY;
+      
+      // Only start animation loop if not already running
+      if (!isAnimating) {
+        isAnimating = true;
+        animateCursor();
+      }
     };
     
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     
-    const animateCursor = (currentTime) => {
+    const animateCursor = (currentTime = performance.now()) => {
       // Throttle to target FPS
       if (currentTime - lastFrameTime < frameInterval) {
         rafId = requestAnimationFrame(animateCursor);
@@ -103,32 +117,35 @@ function App() {
       const dy = targetY - mouseY;
       const distance = Math.sqrt(dx * dx + dy * dy);
       
-      if (distance > 0.5) { // Only update if moved more than 0.5px
+      if (distance > 1) { // Increased threshold to 1px for less frequent updates
         mouseX += dx * speed;
         mouseY += dy * speed;
         cursor.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+        rafId = requestAnimationFrame(animateCursor);
+      } else {
+        // Stop animation when cursor is close enough
+        isAnimating = false;
       }
-      
-      rafId = requestAnimationFrame(animateCursor);
     };
-    rafId = requestAnimationFrame(animateCursor);
 
-    const handleMouseEnter = () => cursor.classList.add('cursor-expanded');
-    const handleMouseLeave = () => cursor.classList.remove('cursor-expanded');
-    
-    // Use passive event listener and throttle hover checks
-    let hoverCheckTimeout = null;
+    // Debounced hover state management
+    let hoverState = false;
+    let hoverCheckRaf = null;
     const handleHover = (e) => {
-      if (hoverCheckTimeout) return;
+      if (hoverCheckRaf) return;
       
-      hoverCheckTimeout = setTimeout(() => {
-        if (e.target.closest('a, button, .hover-target, input, textarea')) {
-          handleMouseEnter();
-        } else {
-          handleMouseLeave();
+      hoverCheckRaf = requestAnimationFrame(() => {
+        const shouldExpand = !!e.target.closest('a, button, .hover-target, input, textarea');
+        if (shouldExpand !== hoverState) {
+          hoverState = shouldExpand;
+          if (shouldExpand) {
+            cursor.classList.add('cursor-expanded');
+          } else {
+            cursor.classList.remove('cursor-expanded');
+          }
         }
-        hoverCheckTimeout = null;
-      }, 16); // ~60fps check rate
+        hoverCheckRaf = null;
+      });
     };
     document.addEventListener('mouseover', handleHover, { passive: true });
     
@@ -136,7 +153,8 @@ function App() {
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseover', handleHover);
       if (rafId) cancelAnimationFrame(rafId);
-      if (hoverCheckTimeout) clearTimeout(hoverCheckTimeout);
+      if (hoverCheckRaf) cancelAnimationFrame(hoverCheckRaf);
+      if (mouseMoveTimeout) clearTimeout(mouseMoveTimeout);
     };
   }, []);
 
