@@ -11,5 +11,5 @@ if [ ! -d "dist" ]; then
 fi
 
 # Explicitly bind to 0.0.0.0 (IPv4) to avoid IPv6 issues with Docker/Traefik
-echo "Starting serve on 0.0.0.0:$PORT"
-exec ./node_modules/.bin/serve -s dist -l tcp://0.0.0.0:$PORT
+echo "Starting serve via bunx on 0.0.0.0:$PORT"
+exec bunx serve -s dist -l tcp://0.0.0.0:$PORT
